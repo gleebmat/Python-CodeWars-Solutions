@@ -6,7 +6,6 @@ load_dotenv()
 
 
 api_key = os.getenv("OPEN_AI_API_KEY")
-print(api_key)
 client = OpenAI(api_key=api_key)
 
 

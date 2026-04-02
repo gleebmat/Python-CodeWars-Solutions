@@ -19,7 +19,7 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 MAX_TOKENS = 300
 
-converter = DocumentConverter(enable_ocr=False)
+converter = DocumentConverter()
 result = converter.convert("https://arxiv.org/pdf/2408.09869")
 
 chunker = HybridChunker(
