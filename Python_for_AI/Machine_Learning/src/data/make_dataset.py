@@ -3,6 +3,9 @@ from glob import glob
 from pathlib import Path
 
 
+files = sorted(glob("../../data/raw/MetaMotion/*.csv"))
+
+
 def read_data_from_files(files):
     acc_df = pd.DataFrame()
     gyr_df = pd.DataFrame()
@@ -13,7 +16,7 @@ def read_data_from_files(files):
     for f in files:
         participant = Path(f).name.split("-")[0]
         label = Path(f).name.split("-")[1]
-        category = Path(f).name.split("-")[2].rstrip("2").rstrip("_MetaWear_2019")
+        category = Path(f).name.split("-")[2].rstrip("23").rstrip("_MetaWear_2019")
 
         df = pd.read_csv(f)
 
@@ -35,17 +38,17 @@ def read_data_from_files(files):
     gyr_df.index = pd.to_datetime(gyr_df["epoch (ms)"], unit="ms")
 
     del acc_df["epoch (ms)"]
-    del gyr_df["epoch (ms)"]
     del acc_df["time (01:00)"]
-    del gyr_df["time (01:00)"]
     del acc_df["elapsed (s)"]
-    del gyr_df["elapsed (s)"]
 
+    del gyr_df["epoch (ms)"]
+    del gyr_df["time (01:00)"]
+    del gyr_df["elapsed (s)"]
     return acc_df, gyr_df
 
 
-files = glob("../../data/raw/MetaMotion/*.csv")
 acc_df, gyr_df = read_data_from_files(files)
+
 
 data_merged = pd.concat([acc_df.iloc[:, :3], gyr_df], axis=1)
 data_merged.columns = [
@@ -55,12 +58,11 @@ data_merged.columns = [
     "gyr_x",
     "gyr_y",
     "gyr_z",
+    "participant",
     "label",
     "category",
-    "participant",
     "set",
 ]
-
 
 sampling = {
     "acc_x": "mean",
@@ -69,21 +71,32 @@ sampling = {
     "gyr_x": "mean",
     "gyr_y": "mean",
     "gyr_z": "mean",
+    "participant": "last",
     "label": "last",
     "category": "last",
-    "participant": "last",
     "set": "last",
 }
-data_merged[:1000].resample("200ms").apply(sampling)
+
 days = [g for n, g in data_merged.groupby(pd.Grouper(freq="D"))]
-data_resambled = pd.concat(
+
+data_resampled = pd.concat(
     [df.resample(rule="200ms").apply(sampling).dropna() for df in days]
 )
-data_resambled["set"] = data_resambled["set"].astype("int")
-data_resambled.info()
+data_resampled["set"] = data_resampled["set"].astype("int")
+
+data_resampled[:50]
+data_resampled.to_pickle("../../data/interim/01_data_processed.pkl")
+# data_merged = pd.concat([acc_df.iloc[:, :3], gyr_df], axis=1)
 
 
-data_resambled.to_pickle("../../data/interim/01_data_processed.pkl")
+# days = [g for n, g in data_merged.groupby(pd.Grouper(freq="D"))]
+# data_resambled = pd.concat(
+#     [df.resample(rule="200ms").apply(sampling).dropna() for df in days]
+# )
+# data_resambled["set"] = data_resambled["set"].astype("int")
+
+
+# data_resambled.to_pickle("../../data/interim/01_data_processed.pkl")
 # --------------------------------------------------------------
 # Read single CSV file
 # --------------------------------------------------------------
@@ -116,31 +129,3 @@ data_resambled.to_pickle("../../data/interim/01_data_processed.pkl")
 # df["category"] = category
 # --------------------------------------------------------------
 # Read all files
-# --------------------------------------------------------------
-
-# --------------------------------------------------------------
-# Working with datetimes
-# --------------------------------------------------------------
-
-
-# --------------------------------------------------------------
-# Turn into function
-# --------------------------------------------------------------
-
-
-# --------------------------------------------------------------
-# Merging datasets
-# --------------------------------------------------------------
-
-
-# --------------------------------------------------------------
-# Resample data (frequency conversion)
-# --------------------------------------------------------------
-
-# Accelerometer:    12.500HZ
-# Gyroscope:        25.000Hz
-
-
-# --------------------------------------------------------------
-# Export dataset
-# --------------------------------------------------------------
