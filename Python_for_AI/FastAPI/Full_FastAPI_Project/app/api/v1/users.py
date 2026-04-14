@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from Full_FastAPI_Project.app.models import User
+from app.models import User
 from app.schemas import UserRequest, UserResponse
 from app.service import users as users_service
 from sqlalchemy.orm import Session
