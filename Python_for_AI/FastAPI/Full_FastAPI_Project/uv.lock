@@ -97,6 +97,7 @@ dependencies = [
     { name = "httpsx" },
     { name = "httpx" },
     { name = "pytest" },
+    { name = "requests" },
     { name = "sqlalchemy" },
 ]
 
@@ -105,6 +106,7 @@ requires-dist = [
     { name = "httpsx", specifier = ">=0.0.1" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "pytest", specifier = ">=9.0.3" },
+    { name = "requests", specifier = ">=2.33.1" },
     { name = "sqlalchemy", specifier = ">=2.0.49" },
 ]
 

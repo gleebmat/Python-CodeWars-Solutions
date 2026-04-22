@@ -1,36 +1,44 @@
+from decimal import Decimal
+
+from app.enum import CurrencyEnum
 from app.models import User
-from app.schemas import CreateWalletRequest
+from app.schemas import CreateWalletRequest, TotalBalance, WalletResponse
 from app.repository import wallets as wallets_repository
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
+from app.service import exchange_service
 
 
-def get_wallet(db: Session, current_user: User, wallet_name: str | None = None):
+async def get_total_balance(db: Session, current_user: User) -> TotalBalance:
 
-    if wallet_name is None:
-        wallets = wallets_repository.get_all_wallets(db, current_user.id)
-        return {"total_balance": sum([w.balance for w in wallets])}
-    if not wallets_repository.is_wallet_exist(db, current_user.id, wallet_name):
-        raise HTTPException(status_code=404, detail=f"Wallet '{wallet_name}' not found")
-    wallet = wallets_repository.get_wallet_balance_by_name(
-        db, current_user.id, wallet_name
-    )
+    wallets = wallets_repository.get_all_wallets(db, current_user.id)
+    total_balance = Decimal(0)
+    for wallet in wallets:
+        if wallet.currency == CurrencyEnum.RUB:
+            total_balance += wallet.balance
+        else:
+            exchange_rate = await exchange_service.get_exchange_rate(
+                wallet.currency, CurrencyEnum.RUB
+            )
+            total_balance += exchange_rate * wallet.balance
+    return TotalBalance(total_balance=total_balance)
 
-    return {"wallet": wallet.name, "balance": wallet.balance}
 
-
-def create_wallet(db: Session, current_user: User, wallet: CreateWalletRequest):
+def create_wallet(
+    db: Session, current_user: User, wallet: CreateWalletRequest
+) -> WalletResponse:
 
     if wallets_repository.is_wallet_exist(db, current_user.id, wallet.name):
         raise HTTPException(
             status_code=400, detail=f"Wallet '{wallet.name}' already exists"
         )
     wallet = wallets_repository.create_wallet(
-        db, current_user.id, wallet.name, wallet.initial_balance
+        db, current_user.id, wallet.name, wallet.initial_balance, wallet.currency
     )
     db.commit()
-    return {
-        "message": f"Wallet '{wallet.name}' successfully created",
-        "wallet": wallet.name,
-        "balance": wallet.balance,
-    }
+    return WalletResponse.model_validate(wallet)
+
+
+def get_all_wallets(db: Session, current_user: User) -> list[WalletResponse]:
+    wallets = wallets_repository.get_all_wallets(db, current_user.id)
+    return [WalletResponse.model_validate(wallet) for wallet in wallets]
