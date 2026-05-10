@@ -1,0 +1,6 @@
+
+.venv/
+data/MNIST/raw/
+__pycache__/
+*.pyc
+data/

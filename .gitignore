@@ -1,0 +1,21 @@
+.venv/
+.env
+__pycache__/
+*.pyc
+# Ignore the entire virtual environment folder regardless of depth
+.venv/
+venv/
+env/
+bin/
+obj/
+
+# Ignore python cache
+**/__pycache__/
+
+# Ignore large data files (example)
+*.csv
+*.zip
+*.7z
+*.tar.gz
+
+data/

@@ -1,0 +1,7 @@
+README.md
+pyproject.toml
+First_Project/main.py
+langchain.egg-info/PKG-INFO
+langchain.egg-info/SOURCES.txt
+langchain.egg-info/dependency_links.txt
+langchain.egg-info/top_level.txt
